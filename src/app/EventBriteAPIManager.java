@@ -11,6 +11,9 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 public class EventBriteAPIManager {
 	
 	private static HttpURLConnection con;
@@ -46,7 +49,7 @@ public class EventBriteAPIManager {
 			}
 			reader.close();
 			
-			System.out.println(responseContent.toString());
+			parse(responseContent.toString());
 			
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
@@ -57,6 +60,19 @@ public class EventBriteAPIManager {
 			con.disconnect();
 		}
 		
+	}
+	
+	public static String parse(String responseBody) {
+		JSONArray albums = new JSONArray(responseBody);
+		for(int i = 0; i < albums.length(); i++) {
+			JSONObject album = albums.getJSONObject(i);
+			//where key is id
+			int id = album.getInt("id");
+			int userId = album.getInt("userId");
+			String title = album.getString("title");
+			System.out.println(id + "  " + title + "  " + userId);
+		}
+		return null;
 	}
 	
 }
