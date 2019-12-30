@@ -9,9 +9,16 @@ public class URLManager {
 	private static String TicketMasterKey = "sZvd7rdheL5ZlSnIw3YIvQGGv5uoqEqh";
 	
 	
+	public static String classificationsURL() {
+		String result = TicketMasterBase + "classifications.json?";
+		result += "apikey=" + TicketMasterKey;
+		return result;
+	}
+	
 	/*
 	 * Searches events by postal code and start end local time.
 	 * Includes classification for category of interest such as music
+	 * Defaults to postalCode of 08901
 	 */
 	public static String searchEventURL(String postalCode, LocalDateTime startDateTime, LocalDateTime endDateTime, String[] classificationName ) {
 		//Default country is already US, default locale is "en"
@@ -42,7 +49,15 @@ public class URLManager {
 		}
 		
 		if(classificationName != null) {
-			result += "&" + "classificationName=" + classificationName;
+			result += "&" + "classificationName=";
+			for(int i = 0; i < classificationName.length; i++) {
+				if(i == 0) {
+					result += classificationName[i];
+				}
+				else {
+					result += "," + classificationName[i];
+				}
+			}
 		}
 
 			
