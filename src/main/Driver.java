@@ -10,27 +10,34 @@ import main.java.GoogleCalendarAPIManager;
 public class Driver {
 
 	public static void main(String[] args) {
-//		//Try today's date
-//		LocalDateTime start = LocalDateTime.now();
-//		//End 1 month after
-//		LocalDateTime end = start.plusMonths(1);
-//		String postalCode = "08901";
-//		String[] genres = new String[] {"music"};
-//		
-//		TicketMasterAPIManager.findEvents(postalCode, start, end, genres);
-//		
-//		TicketMasterAPIManager.getClassifications();
+		//zipcode and genres to search
+		String postalCode = "08901";
+		String[] genres = new String[] {"music"};
 		
-		//Try Google Calendar API
 		ArrayList<TimeInterval> events = new ArrayList<>();
+		ArrayList<TimeInterval> freeTime = new ArrayList<>();
+		//Get my google calendar events
 		try {
 			events = GoogleCalendarAPIManager.getEvents();
 		} catch (IOException | GeneralSecurityException e) {
 			e.printStackTrace();
 		}
+		//Find my free time
+		freeTime = TimeInterval.getFreeTime(events);
 		
 		System.out.println(events.toString());
+		System.out.println();
+		System.out.println("Free Time");
+		System.out.println(freeTime.toString());
 		
+		//Suggest Events and print
+		ArrayList<Event> suggestedEvents = new ArrayList<>();
+		suggestedEvents = TicketMasterAPIManager.findAllEvents(postalCode, freeTime, genres);
+		if(suggestedEvents.isEmpty()) {
+			System.out.println("No events found");
+		}else {
+			System.out.println(suggestedEvents.toString());
+		}
 	}
 	
 }

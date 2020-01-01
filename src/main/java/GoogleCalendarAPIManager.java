@@ -69,7 +69,7 @@ public class GoogleCalendarAPIManager {
     
     
     /*
-     * Gets first 10 events from Google Calendar and returns an ArrayList of time intervals of those events
+     * Gets first 50 events from Google Calendar and returns an ArrayList of time intervals of those events
      */
     public static ArrayList<TimeInterval> getEvents() throws IOException, GeneralSecurityException {
         // Build a new authorized API client service.
@@ -81,7 +81,7 @@ public class GoogleCalendarAPIManager {
         // List the next 10 events from the primary calendar.
         DateTime now = new DateTime(System.currentTimeMillis());
         Events events = service.events().list("primary")
-                .setMaxResults(10)
+                .setMaxResults(50)
                 .setTimeMin(now)
                 .setOrderBy("startTime")
                 .setSingleEvents(true)
@@ -101,8 +101,8 @@ public class GoogleCalendarAPIManager {
                 if(end == null) {
                 	end = event.getEnd().getDate();
                 }
-                System.out.println("starts" + start.toString());
-                System.out.println("ends" + end.toString());
+//                System.out.println("starts" + start.toString());
+//                System.out.println("ends" + end.toString());
                 TimeInterval myEvent = new TimeInterval(GoogleCalendarAPIManager.convertLocalDateTime(start), GoogleCalendarAPIManager.convertLocalDateTime(end));
                 eventsAL.add(myEvent);
             }
