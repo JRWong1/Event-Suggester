@@ -16,11 +16,18 @@ import com.google.api.services.calendar.CalendarScopes;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.Events;
 
+import main.TimeInterval;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -59,8 +66,12 @@ public class GoogleCalendarAPIManager {
         LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
         return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
     }
-
-    public static void main(String... args) throws IOException, GeneralSecurityException {
+    
+    
+    /*
+     * Gets first 10 events from Google Calendar and returns an ArrayList of time intervals of those events
+     */
+    public static ArrayList<TimeInterval> getEvents() throws IOException, GeneralSecurityException {
         // Build a new authorized API client service.
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
         Calendar service = new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
@@ -76,17 +87,34 @@ public class GoogleCalendarAPIManager {
                 .setSingleEvents(true)
                 .execute();
         List<Event> items = events.getItems();
+        ArrayList<TimeInterval> eventsAL= new ArrayList<>();
         if (items.isEmpty()) {
             System.out.println("No upcoming events found.");
         } else {
             System.out.println("Upcoming events");
             for (Event event : items) {
                 DateTime start = event.getStart().getDateTime();
+                DateTime end = event.getEnd().getDateTime();
                 if (start == null) {
                     start = event.getStart().getDate();
                 }
-                System.out.printf("%s (%s)\n", event.getSummary(), start);
+                if(end == null) {
+                	end = event.getEnd().getDate();
+                }
+                System.out.println("starts" + start.toString());
+                System.out.println("ends" + end.toString());
+                TimeInterval myEvent = new TimeInterval(GoogleCalendarAPIManager.convertLocalDateTime(start), GoogleCalendarAPIManager.convertLocalDateTime(end));
+                eventsAL.add(myEvent);
             }
         }
+        return eventsAL;
+    }
+    
+    /*
+     * Converts a Google DateTime object to java LocalDateTime object
+     */
+    private static LocalDateTime convertLocalDateTime(DateTime event) {
+    	LocalDateTime result = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.getValue()), ZoneId.systemDefault());
+    	return result;
     }
 }
