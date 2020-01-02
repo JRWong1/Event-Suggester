@@ -8,13 +8,50 @@ public class TimeInterval {
 	private LocalDateTime start;
 	private LocalDateTime end;
 	
-	
+	/*
+	 * Constructor, start time must be before end time
+	 */
 	public TimeInterval(LocalDateTime start, LocalDateTime end) throws IllegalArgumentException {
 		if(!start.isBefore(end)) {
 			throw new IllegalArgumentException("start must come before end");
 		}
 		this.start = start;
 		this.end = end;
+	}
+	
+	/*
+	 * Takes in a LocalDateTime object and TimeInterval and checks if it is inside the interval
+	 * Inclusive at the start
+	 * Excludes the last 1 hour because events normally last at least 1 hour
+	 */
+	public static boolean isWithin(LocalDateTime myTime, TimeInterval interval) {
+		//Exclude last 1 hour
+		LocalDateTime hourBeforeEnd = interval.getEnd().minusHours(1);
+		if(myTime.isEqual(interval.getStart())) {
+			return true;
+		}
+		else if(myTime.isEqual(hourBeforeEnd)) {
+			return true;
+		}
+		else if(interval.getStart().isBefore(myTime) && hourBeforeEnd.isAfter(myTime)) {
+			return true;
+		}
+		return false;
+	}
+	/*
+	 * Takes in event and free time (Array of Time intervals)
+	 * Returns true if event is within free time
+	 */
+	public static boolean isWithin(Event event, ArrayList<TimeInterval> freeTime) {
+		LocalDateTime eventTime = event.start;
+		//Go through freeTime
+		for(TimeInterval t: freeTime) {
+			//Event is within this particular interval
+			if(TimeInterval.isWithin(eventTime, t)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/*

@@ -22,36 +22,38 @@ import org.json.JSONObject;
 public class TicketMasterAPIManager {
 	
 	private static HttpURLConnection con;
+	private static final int MONTHS_FROM_NOW_TO_SEARCH = 1;
 	
-//	public static void main(String[] args) {
-//		
-//		//findEvents();
-//		//getClassifications();
-//	}
-	
-	public static ArrayList<Event> findAllEvents(String postalCode, ArrayList<TimeInterval> freeTime, String[] genres){
+	/*
+	 * Finds events within free TimeIntervals with zipcode and categories
+	 */
+	public static ArrayList<Event> findAllEvents(String postalCode, ArrayList<TimeInterval> freeTime, ArrayList<String> genres){
+		//Look for events up to one month from now
+		LocalDateTime start = LocalDateTime.now();
+		LocalDateTime end = start.plusMonths(MONTHS_FROM_NOW_TO_SEARCH);
 		ArrayList<Event> result = new ArrayList<>();
-		for(TimeInterval t: freeTime) {
-			ArrayList<Event> temp = new ArrayList<>();
-			temp = findEvents(postalCode, t.getStart(), t.getEnd(), genres);
-			for(Event e: temp) {
+		ArrayList<Event> temp = new ArrayList<>();
+		
+		//Get events from now to 1 month from now
+		temp = findEvents(postalCode, start, end, genres);
+		
+		//Get rid of events not in free time
+		//Loop through each event
+		for(Event e: temp) {
+			//If this event is in free time, add to return value result
+			if(TimeInterval.isWithin(e, freeTime)) {
 				result.add(e);
 			}
-			//Need to wait before make next api call
-			try {
-				Thread.sleep(200);
-			} catch (InterruptedException e1) {
-				Thread.currentThread().interrupt();
-			}
 		}
+
 		return result;
 	}
 
 	
 	/*
-	 * Will return something later, perhaps an ArrayList of Event objects
+	 * Returns array of Event objects within the start and end time
 	 */
-	public static ArrayList<Event> findEvents(String postalCode, LocalDateTime start, LocalDateTime end, String[] genres) {
+	public static ArrayList<Event> findEvents(String postalCode, LocalDateTime start, LocalDateTime end, ArrayList<String> genres) {
 		ArrayList<Event> result = new ArrayList<>();
 		BufferedReader reader;
 		String line;
@@ -203,7 +205,7 @@ public class TicketMasterAPIManager {
 	}
 	
 	/*
-	 * Parses events that have been searched and returns Array of event objects
+	 * Parses events that have been searched and returns Array of event objects from TicketMaster
 	 */
 	private static ArrayList<Event> parse(String responseBody) {
 		ArrayList<Event> result = new ArrayList<>();
@@ -214,7 +216,7 @@ public class TicketMasterAPIManager {
 		try {
 			page = wholePage.getJSONObject("page");
 		} catch(JSONException e) {
-			//Called too fast for api
+			//RIP error
 			System.out.println(responseBody);
 			return result;
 		}
@@ -271,11 +273,6 @@ public class TicketMasterAPIManager {
 				startDateTime = start.getString("localTime");
 				defaultTime = LocalTime.parse(startDateTime);
 				eventDateTime = LocalDateTime.of(tempDate, defaultTime);
-				
-				
-				//Exception in thread "main" java.time.format.DateTimeParseException: Text '2020-01-12T20:00:00Z' could not be parsed: Unable to obtain LocalDateTime from TemporalAccessor: {NanoOfSecond=0, MicroOfSecond=0, InstantSeconds=1578859200, MilliOfSecond=0},ISO of type java.time.format.Parsed
-
-				//eventDateTime = LocalDateTime.parse(startDateTime, formatter);
 			} catch(JSONException e) {
 				//No specific time
 				startDateTime = start.getString("localDate");
@@ -285,13 +282,6 @@ public class TicketMasterAPIManager {
 			//Make event object
 			Event toSuggest = new Event(name, eventDateTime, id, url, firstImage);
 			result.add(toSuggest);
-			
-//			System.out.println("Event: ");
-//			System.out.println("	Name: " + name);
-//			System.out.println("	Starts At: " + startDateTime);
-//			System.out.println("	id: " + id);
-//			System.out.println("	link: " + url);
-//			System.out.println("	image: " + firstImage);
 		}
 		return result;
 	}	

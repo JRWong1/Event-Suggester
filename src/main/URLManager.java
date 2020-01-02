@@ -2,6 +2,7 @@ package main;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 
 public class URLManager {
 	
@@ -20,7 +21,7 @@ public class URLManager {
 	 * Includes classification for category of interest such as music
 	 * Defaults to postalCode of 08901
 	 */
-	public static String searchEventURL(String postalCode, LocalDateTime startDateTime, LocalDateTime endDateTime, String[] classificationName ) {
+	public static String searchEventURL(String postalCode, LocalDateTime startDateTime, LocalDateTime endDateTime, ArrayList<String> classificationName ) {
 		//Default country is already US, default locale is "en"
 		
 		String result = TicketMasterBase + "events.json?";
@@ -48,14 +49,14 @@ public class URLManager {
 			result += "&endDateTime=" + formattedDate;
 		}
 		
-		if(classificationName != null) {
+		if(!classificationName.isEmpty() && (classificationName != null)) {
 			result += "&" + "classificationName=";
-			for(int i = 0; i < classificationName.length; i++) {
+			for(int i = 0; i < classificationName.size(); i++) {
 				if(i == 0) {
-					result += classificationName[i];
+					result += classificationName.get(i);
 				}
 				else {
-					result += "," + classificationName[i];
+					result += "," + classificationName.get(i);
 				}
 			}
 		}

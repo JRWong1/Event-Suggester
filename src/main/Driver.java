@@ -12,7 +12,8 @@ public class Driver {
 	public static void main(String[] args) {
 		//zipcode and genres to search
 		String postalCode = "08901";
-		String[] genres = new String[] {"music"};
+		ArrayList<String> genres = new ArrayList<>();
+		genres.add("music");
 		
 		ArrayList<TimeInterval> events = new ArrayList<>();
 		ArrayList<TimeInterval> freeTime = new ArrayList<>();
