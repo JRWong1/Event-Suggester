@@ -13,6 +13,8 @@ import com.google.api.client.util.DateTime;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.CalendarScopes;
+import com.google.api.services.calendar.model.CalendarList;
+import com.google.api.services.calendar.model.CalendarListEntry;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.Events;
 
@@ -69,7 +71,8 @@ public class GoogleCalendarAPIManager {
     
     
     /*
-     * Gets first 50 events from Google Calendar and returns an ArrayList of time intervals of those events
+     * Gets first 50 events from Google Calendars and returns an ArrayList of time intervals of those events
+     * Need to add calendars into your Google Calendar first
      */
     public static ArrayList<TimeInterval> getEvents() throws IOException, GeneralSecurityException {
         // Build a new authorized API client service.
@@ -77,16 +80,38 @@ public class GoogleCalendarAPIManager {
         Calendar service = new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
                 .setApplicationName(APPLICATION_NAME)
                 .build();
-
-        // List the next 10 events from the primary calendar.
+        
         DateTime now = new DateTime(System.currentTimeMillis());
-        Events events = service.events().list("primary")
-                .setMaxResults(50)
-                .setTimeMin(now)
-                .setOrderBy("startTime")
-                .setSingleEvents(true)
-                .execute();
-        List<Event> items = events.getItems();
+        List<Event> items = null;
+        
+
+        String pageToken = null;
+        do {
+        	//Get each calendar in group, watch out for extraneous calendars such as "Birthdays," although this may still be relevant
+          CalendarList calendarList = service.calendarList().list().setPageToken(pageToken).execute();
+          List<CalendarListEntry> calendars = calendarList.getItems();
+          ArrayList<String> calendarIds = new ArrayList<>();
+
+          for (CalendarListEntry calendarListEntry : calendars) {
+        	  //get events from each person in group
+        	  String id = calendarListEntry.getId();
+        	  Events temp = service.events().list(id)
+                      .setMaxResults(50)
+                      .setTimeMin(now)
+                      .setOrderBy("startTime")
+                      .setSingleEvents(true)
+                      .execute();
+        	  if(items == null) {
+        		  items = temp.getItems();
+        	  }
+        	  else {
+        		  items.addAll(temp.getItems());
+        	  }
+          }
+          pageToken = calendarList.getNextPageToken();
+        } while (pageToken != null);
+        
+        
         ArrayList<TimeInterval> eventsAL= new ArrayList<>();
         if (items.isEmpty()) {
             System.out.println("No upcoming events found.");
@@ -101,14 +126,14 @@ public class GoogleCalendarAPIManager {
                 if(end == null) {
                 	end = event.getEnd().getDate();
                 }
-//                System.out.println("starts" + start.toString());
-//                System.out.println("ends" + end.toString());
                 TimeInterval myEvent = new TimeInterval(GoogleCalendarAPIManager.convertLocalDateTime(start), GoogleCalendarAPIManager.convertLocalDateTime(end));
                 eventsAL.add(myEvent);
             }
         }
         return eventsAL;
     }
+    
+
     
     /*
      * Converts a Google DateTime object to java LocalDateTime object
