@@ -42,7 +42,10 @@ public class GoogleCalendarAPIManager {
      * If modifying these scopes, delete your previously saved tokens/ folder.
      */
     private static final List<String> SCOPES = Collections.singletonList(CalendarScopes.CALENDAR_READONLY);
-    private static final String CREDENTIALS_FILE_PATH = "../resources/credentials.json";
+    
+    
+    //THIS PATH ISNT WORKING
+    private static final String CREDENTIALS_FILE_PATH = "credentials.json";
 
     /**
      * Creates an authorized Credential object.
